@@ -14,6 +14,7 @@
   <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
   <script src="http://cdn.sockjs.org/sockjs-0.3.4.min.js"></script>
   <script src="vertxbus.js"></script>
+  <script src="aerogear.min.js"></script>
   <script src="debug.js"></script>
 
 </head>
@@ -118,14 +119,13 @@
 	}	
 	
 	function sendCanvas() {
-	    var msg = {
-			'id' : myUUID,
-			'data': mainCanvas.toDataURL("image/png")
-	    }
-	    msgAsString = JSON.stringify(msg);
+	    var msg = JSON.stringify({
+				'id' : myUUID,
+				'data': mainCanvas.toDataURL("image/png")
+		   });
 	    // console.log("CANVAS: " + msgAsString);
 	
-		publish(address, msgAsString);		
+		publish(address, msg);		
 	}
 	
 	function getX(event) {
@@ -148,31 +148,41 @@
 
   function publish(address,  message) {
     if (eb) {
-      eb.publish(address, message);
+      eb.send(address, message);
 	  // console.log("published: " + message);
     }
   }
 
   function closeConn() {
     if (eb) {
-      eb.close();
+      eb.disconnect();
     }
   }
 
   function openConn() {
     if (!eb) {
-      eb = new vertx.EventBus(url);
-
-      eb.onopen = function() {
-		myUUID = eb.makeUUID();
-        console.log("Connected " + myUUID);
-
-      };
-
-      eb.onclose = function() {
-        console.log("Not connected");
-        eb = null;
-      };
+      eb = AeroGear.Notifier({
+        name: "eb",
+        settings: {
+          autoConnect: true,
+          connectURL: url,
+          onConnect: function() {
+          	myUUID = uuid();
+          	eb.subscribe({
+			        address: "org.aerogear.messaging.paint",
+			        callback: function(){}
+			    	});
+            console.log("Connected " + myUUID);
+          },
+          onConnectError: function() {
+            console.log( "connection error" );
+          },
+          onDisconnect: function() {
+            console.log("Not connected");
+      			eb = null;
+          }
+        }
+    	}).clients.eb;
     }
   }
 	

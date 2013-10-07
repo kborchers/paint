@@ -27,6 +27,7 @@ public class BridgeServer extends Verticle {
         if (req.path().equals("/receive")) req.response().sendFile("receive.html"); 
         if (req.path().equals("/canvas_test")) req.response().sendFile("canvas_test.html"); 
         if (req.path().endsWith("vertxbus.js")) req.response().sendFile("vertxbus.js"); // Serve the js
+        if (req.path().endsWith("aerogear.min.js")) req.response().sendFile("aerogear.min.js"); // Serve the js
         if (req.path().endsWith("debug.js")) req.response().sendFile("debug.js"); // Serve the js
       }
     });

@@ -107,11 +107,6 @@ var vertx = vertx || {};
     that.readyState = function() {
       return state;
     }
-
-    // Burr addition
-		that.makeUUID = function() {
-			return makeUUID();
-		}
   
     sockJSConn.onopen = function() {
       // Send the first ping then send a ping every 5 seconds
@@ -132,9 +127,7 @@ var vertx = vertx || {};
   
     sockJSConn.onmessage = function(e) {
       var msg = e.data;
-      // console.log("msg:" + e.data);
       var json = JSON.parse(msg);
-
       var body = json.body;
       var replyAddress = json.replyAddress;
       var address = json.address;

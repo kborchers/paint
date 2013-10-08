@@ -34,8 +34,9 @@
 	</div>
  <script>
   var eb = null;
-  var address = "paintAddress";
-  var myUUID = null;
+  var address = "org.aerogear.messaging.paint";
+  var theCanvas = document.getElementById("mainCanvas");
+  var myUUID = uuid();
   var url = "http://paint-html5.rhcloud.com:8000/eventbus";
   // var url = "http://localhost:8000/eventbus";
   // var url = "http://192.168.1.102:8000/eventbus";
@@ -119,13 +120,13 @@
 	}	
 	
 	function sendCanvas() {
-	    var msg = JSON.stringify({
+	    var msg = {
 				'id' : myUUID,
 				'data': mainCanvas.toDataURL("image/png")
-		   });
+		   };
 	    // console.log("CANVAS: " + msgAsString);
 	
-		publish(address, msg);		
+		eb.send(address, msg, true);
 	}
 	
 	function getX(event) {
@@ -146,12 +147,6 @@
 		}
 	}	
 
-  function publish(address,  message) {
-    if (eb) {
-      eb.send(address, message);
-	  // console.log("published: " + message);
-    }
-  }
 
   function closeConn() {
     if (eb) {
@@ -167,10 +162,13 @@
           autoConnect: true,
           connectURL: url,
           onConnect: function() {
-          	myUUID = uuid();
           	eb.subscribe({
-			        address: "org.aerogear.messaging.paint",
-			        callback: function(){}
+			        address: address,
+			        callback: function( message ) {
+			        	if (message.id !== myUUID) {
+			        		deserialize(message.data, theCanvas)
+			        	}
+			        }
 			    	});
             console.log("Connected " + myUUID);
           },
@@ -185,8 +183,17 @@
     	}).clients.eb;
     }
   }
-	
-	
+
+  function deserialize(data, canvas) {
+    var img = new Image();
+    img.src = data;
+    img.onload = function() {
+        // canvas.width = img.width;
+        // canvas.height = img.height;
+        ctx.drawImage(img, 0, 0, img.width, img.height );
+    };
+	}
+
     $(document).ready(function() {
 		openConn();
 
